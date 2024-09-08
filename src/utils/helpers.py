@@ -14,10 +14,6 @@ from utils.notifications.teams import (
     send_completion_teams_message,
     send_error_teams_message,
 )
-from utils.notifications.zulip import (
-    send_completion_zulip_message,
-    send_error_zulip_message,
-)
 
 from utils.notifications.zabbix import (
     send_zabbix_script_monitoring,
@@ -48,11 +44,6 @@ def send_error_notifications(error: str, conf_options: Dict[str, Any]) -> None:
             error,
             conf_options,
         )
-    if "ZulipAPI" in conf_options["APP"]["NOTIFICATIONS"]:
-        send_error_zulip_message(
-            error,
-            conf_options,
-        )
 
 
 def send_completion_notifications(conf_options: Dict[str, Any]) -> None:
@@ -62,7 +53,5 @@ def send_completion_notifications(conf_options: Dict[str, Any]) -> None:
         send_completion_slack_message(conf_options)
     if "Teams" in conf_options["APP"]["NOTIFICATIONS"]:
         send_completion_teams_message(conf_options)
-    if "ZulipAPI" in conf_options["APP"]["NOTIFICATIONS"]:
-        send_completion_zulip_message(conf_options)
     if "Zabbix" in conf_options["APP"]["SCRIPT_MONITORING"]:
         send_zabbix_script_monitoring(0, conf_options)

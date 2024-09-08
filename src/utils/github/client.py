@@ -55,25 +55,20 @@ class GitHubAPIClient:
     def get_user_repos(self, user: str) -> dict:
         return self.fetch_all("GET", f"users/{user}/repos")
     
-    def list_webhooks(self, owner: str, repo: str) -> dict:
-        return self.fetch_all("GET", f"repos/{owner}/{repo}/hooks")
+    def list_labels(self, owner: str, repo: str) -> dict:
+        return self.fetch_all("GET", f"repos/{owner}/{repo}/labels")
     
-    def create_webhook(self, owner: str, repo: str, webhook_url: str, events: list = ["push"]) -> dict:
-        logger.info(f"Creating webhook for {owner}/{repo}")
+    def create_label(self, owner: str, repo: str, name: str, color: str, description: str) -> dict:
+        logger.info(f"Creating label {name} in {owner}/{repo}")
 
         data = {
-            "name": "web",
-            "active": True,
-            "events": events,
-            "config": {
-                "url": webhook_url,
-                "content_type": "json",
-            },
+            "name": name,
+            "color": color,
+            "description": description,
         }
         
-        return self.execute_api_call("POST", f"repos/{owner}/{repo}/hooks", data=data)
+        return self.execute_api_call("POST", f"repos/{owner}/{repo}/labels", data=data)
     
-    def delete_webhook(self, owner: str, repo: str, webhook_id: int) -> dict:
-        logger.info(f"Deleting webhook {webhook_id} from {owner}/{repo}")
-
-        return self.execute_api_call("DELETE", f"repos/{owner}/{repo}/hooks/{webhook_id}")
+    def delete_label(self, owner: str, repo: str, label_name: str) -> dict:
+        logger.info(f"Deleting label {label_name} in {owner}/{repo}")
+        return self.execute_api_call("DELETE", f"repos/{owner}/{repo}/labels/{label_name}")

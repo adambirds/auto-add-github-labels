@@ -1,12 +1,126 @@
 APP:
   DEBUG: false
   GITHUB_API_BASE_URL: "https://api.github.com/"
-  WEBHOOKS_URLS_TO_ADD:
-    - ""
   ORGANISATIONS: [
     {
       name: "testorg",
-      token: ""
+      token: "",
+      standard_labels: [
+        {
+          name: "dependencies",
+          color: "0366d6",
+          description: "Ths issue/PR is related to a dependency update."
+        },
+        {
+          name: "bug",
+          color: "d73a4a",
+          description: "Ths issue/PR is related to a bug."
+        },
+        {
+          name: "javascript",
+          color: "168700",
+          description: "This PR updates javaScript/TypeScript code."
+        },
+        {
+          name: "python",
+          color: "2b67c6",
+          description: "This PR updates python code."
+        },
+        {
+          name: "security",
+          color: "FE1E71",
+          description: "This issue is related to security of the application."
+        },
+        {
+          name: "priotity: low",
+          color: "333E04",
+          description: "This issue is of low priority."
+        },
+        {
+          name: "priotity: medium",
+          color: "333E04",
+          description: "This issue is of medium priority."
+        },
+        {
+          name: "priotity: high",
+          color: "333E04",
+          description: "This issue is of high priority."
+        },
+        {
+          name: "priotity: critical",
+          color: "333E04",
+          description: "This issue is of critical priority."
+        },
+        {
+          name: "area: documentation",
+          color: "4263B7",
+          description: "This issue is related to documentation."
+        },
+        {
+          name: "area: deployment",
+          color: "4263B7",
+          description: "This issue is related to deployment."
+        },
+        {
+          name: area: "testing",
+          color: "4263B7",
+          description: "This issue is related to testing."
+        },
+        {
+          name: "area: refactor",
+          color: "4263B7",
+          description: "This issue is related to refactoring."
+        },
+        {
+          name: "area: ci",
+          color: "4263B7",
+          description: "This issue is related to CI/CD."
+        },
+        {
+          name: "area: docker",
+          color: "4263B7",
+          description: "This issue is related to docker."
+        },
+        {
+          name: "area: settings",
+          color: "4263B7",
+          description: "This issue is related to settings and configurations."
+        },
+        {
+          name: "area: performance",
+          color: "4263B7",
+          description: "This issue is related to performance."
+        },
+        {
+          name: "area: logging",
+          color: "4263B7",
+          description: "This issue is related to logging."
+        }
+      ],
+      backend_labels: [
+        {
+          name: "area: database",
+          color: "4263B7",
+          description: "This issue is related to database."
+        },
+      ],
+      frontend_labels: [
+        {
+          name: "area: react",
+          color: "4263B7",
+          description: "This issue is related to react."
+        },
+      ]
+      repositories: [
+        {
+          name: "testrepo-backend",
+          type: "backend",
+        },
+        {
+          name: "testrepo-frontend",
+          type: "frontend",
+        },
+      ]
     }
   ]
   USERS: [
