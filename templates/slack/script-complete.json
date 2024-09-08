@@ -4,7 +4,7 @@
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "The Auto Add GitHub Webhook script has completed successfully."
+                "text": "The Auto Add GitHub Labels script has completed successfully."
             }
         },
         {

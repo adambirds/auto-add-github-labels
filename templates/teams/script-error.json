@@ -11,7 +11,7 @@
                 "body": [
                     {
                         "type": "TextBlock",
-                        "text": "The Auto Add GitHub Webhook script has suffered the following error:",
+                        "text": "The Auto Add GitHub Labels script has suffered the following error:",
                         "wrap": true
                     },
                     {

@@ -2,7 +2,7 @@
     "content": null,
     "embeds": [
         {
-            "title": "The Auto Add GitHub Webhook script has suffered the following error:",
+            "title": "The Auto Add GitHub Labels script has suffered the following error:",
             "color": 16711680,
             "fields": [
                 {

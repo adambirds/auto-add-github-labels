@@ -10,43 +10,33 @@ from utils.github.client import (
 
 logger = logging.getLogger(__name__)
 
-def sync_labels(repo_name: str, labels_to_sync: List[Dict[str, str]], current_labels: List[Dict[str, str]], client: GitHubAPIClient, owner: str) -> None:
-    current_label_names = {label['name'] for label in current_labels}
+def delete_extra_labels(repo_name: str, current_labels: List[Dict[str, str]], labels_to_sync: List[Dict[str, str]], client: GitHubAPIClient, owner: str) -> None:
     config_label_names = {label['name'] for label in labels_to_sync}
 
-    # Add missing labels
-    for label in labels_to_sync:
-        if label['name'] not in current_label_names:
-            client.create_label(owner, repo_name, label['name'], label['color'], label['description'])
-            logger.info(f"Added label {label['name']} to {repo_name}")
-
-    # Delete extra labels
+    # Delete labels that are not in the configuration
     for label in current_labels:
         if label['name'] not in config_label_names:
             client.delete_label(owner, repo_name, label['name'])
             logger.info(f"Deleted label {label['name']} from {repo_name}")
 
-def process_repo_labels(owner: str, repo_name: str, repo_type: str, client: GitHubAPIClient, conf_options: Dict[str, Any]) -> None:
-    # Get standard labels from the config
-    standard_labels = conf_options["APP"]["ORGANISATIONS"][0]["standard_labels"]
-    
-    # Determine which additional labels to use (backend or frontend)
-    if repo_type == "backend":
-        additional_labels = conf_options["APP"]["ORGANISATIONS"][0]["backend_labels"]
-    elif repo_type == "frontend":
-        additional_labels = conf_options["APP"]["ORGANISATIONS"][0]["frontend_labels"]
-    else:
-        logger.error(f"Unknown repo type: {repo_type} for {repo_name}")
-        return
+def add_missing_labels(repo_name: str, current_labels: List[Dict[str, str]], labels_to_sync: List[Dict[str, str]], client: GitHubAPIClient, owner: str) -> None:
+    current_label_names = {label['name'] for label in current_labels}
 
-    # Combine standard labels with backend/frontend labels
-    labels_to_sync = standard_labels + additional_labels
+    # Add missing labels that are in the config but not in the repository
+    for label in labels_to_sync:
+        if label['name'] not in current_label_names:
+            client.create_label(owner, repo_name, label['name'], label['color'], label['description'])
+            logger.info(f"Added label {label['name']} to {repo_name}")
 
+def process_repo_labels(owner: str, repo_name: str, labels_to_sync: List[Dict[str, str]], client: GitHubAPIClient) -> None:
     # Get current labels from the repository
     current_labels = client.list_labels(owner, repo_name)
 
-    # Sync labels (add missing, delete extra)
-    sync_labels(repo_name, labels_to_sync, current_labels, client, owner)
+    # First, delete labels that are not in the configuration
+    delete_extra_labels(repo_name, current_labels, labels_to_sync, client, owner)
+
+    # Then, add missing labels that are in the configuration but not in the repo
+    add_missing_labels(repo_name, current_labels, labels_to_sync, client, owner)
 
 def process_org_repos(organisation: str, api_token: str, conf_options: Dict[str, Any]) -> None:
     client = GitHubAPIClient(
@@ -58,14 +48,29 @@ def process_org_repos(organisation: str, api_token: str, conf_options: Dict[str,
 
     for repo in repos:
         repo_name = repo['name']
-        # Identify if the repository is frontend or backend
+        # Get standard labels from the config
+        standard_labels = conf_options["APP"]["ORGANISATIONS"][0]["standard_labels"]
+
+        # Check if the repository is in the config for specific backend/frontend label management
         for conf_repo in conf_options["APP"]["ORGANISATIONS"][0]["repositories"]:
             if conf_repo['name'] == repo_name:
-                process_repo_labels(organisation, repo_name, conf_repo['type'], client, conf_options)
+                # If repo is found in config, combine standard labels with backend/frontend labels
+                if conf_repo['type'] == "backend":
+                    additional_labels = conf_options["APP"]["ORGANISATIONS"][0]["backend_labels"]
+                elif conf_repo['type'] == "frontend":
+                    additional_labels = conf_options["APP"]["ORGANISATIONS"][0]["frontend_labels"]
+                else:
+                    logger.error(f"Unknown repo type: {conf_repo['type']} for {repo_name}")
+                    break
+
+                labels_to_sync = standard_labels + additional_labels
+                process_repo_labels(organisation, repo_name, labels_to_sync, client)
                 logger.info(f"Processed labels for {repo_name} ({conf_repo['type']})")
                 break
         else:
-            logger.warning(f"Repository {repo_name} not configured for label management.")
+            # If the repo is not found in the config, only apply the standard labels
+            process_repo_labels(organisation, repo_name, standard_labels, client)
+            logger.info(f"Processed standard labels for {repo_name} (not in config)")
 
 def process_user_repos(user: str, api_token: str, conf_options: Dict[str, Any]) -> None:
     client = GitHubAPIClient(
@@ -77,17 +82,23 @@ def process_user_repos(user: str, api_token: str, conf_options: Dict[str, Any]) 
 
     for repo in repos:
         repo_name = repo['name']
-        # Assuming user repositories follow the same config structure for frontend/backend types
-        # Add logic to determine repo type for user repos
+        # Get standard labels from the config
+        standard_labels = conf_options["APP"]["ORGANISATIONS"][0]["standard_labels"]
+
+        # Check if the user repo is in the config for specific backend/frontend label management
         for conf_repo in conf_options["APP"]["USERS"]:
             if conf_repo['name'] == user:
-                # Assume a common type for all user repos, or add specific logic to define repo types here
-                repo_type = "frontend"  # or "backend" or define based on your needs
-                process_repo_labels(user, repo_name, repo_type, client, conf_options)
+                # Apply additional logic for user repos if needed (e.g., frontend/backend)
+                repo_type = "frontend"  # or "backend", adjust logic if needed
+                labels_to_sync = standard_labels  # Add more logic for specific labels if needed
+
+                process_repo_labels(user, repo_name, labels_to_sync, client)
                 logger.info(f"Processed labels for {repo_name} (User: {user}, Type: {repo_type})")
                 break
         else:
-            logger.warning(f"Repository {repo_name} not configured for label management.")
+            # If the repo is not found in the config, only apply the standard labels
+            process_repo_labels(user, repo_name, standard_labels, client)
+            logger.info(f"Processed standard labels for {repo_name} (User: {user}, not in config)")
 
 def main() -> None:
     conf_options = process_config_file()
